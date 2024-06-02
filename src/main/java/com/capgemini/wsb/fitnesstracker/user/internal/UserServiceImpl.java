@@ -6,7 +6,9 @@ import com.capgemini.wsb.fitnesstracker.user.api.UserService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
-
+import com.capgemini.wsb.fitnesstracker.user.api.UserDto;
+import com.capgemini.wsb.fitnesstracker.user.api.UserNotFoundException;
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 
@@ -25,6 +27,21 @@ class UserServiceImpl implements UserService, UserProvider {
         }
         return userRepository.save(user);
     }
+    @Override
+    public void deleteUser(Long id) {
+        userRepository.deleteById(id);
+    }
+
+    @Override
+    public User updateUser(Long id, UserDto userDto) {
+        User existingUser = userRepository.findById(id)
+                .orElseThrow(() -> new UserNotFoundException(id));
+        existingUser.setFirstName(userDto.firstName());
+        existingUser.setLastName(userDto.lastName());
+        existingUser.setBirthdate(userDto.birthdate());
+        existingUser.setEmail(userDto.email());
+        return userRepository.save(existingUser);
+    }
 
     @Override
     public Optional<User> getUser(final Long userId) {
@@ -36,9 +53,20 @@ class UserServiceImpl implements UserService, UserProvider {
         return userRepository.findByEmail(email);
     }
 
+
     @Override
     public List<User> findAllUsers() {
         return userRepository.findAll();
+    }
+
+    @Override
+    public List<User> getUserByPartOfEmail(final String email) {
+        return userRepository.searchByPartOfEmail(email);
+    }
+
+    @Override
+    public List<User> searchUsersOlderThan(final LocalDate date) {
+        return userRepository.searchUsersOlderThan(date);
     }
 
 }
